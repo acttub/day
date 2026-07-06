@@ -1,0 +1,321 @@
+:root {
+  color-scheme: light;
+  --bg: #f5f0e8;
+  --ink: #221b16;
+  --muted: #77695f;
+  --line: #e3d7cb;
+  --card: #fffaf3;
+  --brand: #6f3d2e;
+  --brand-dark: #432219;
+  --accent: #d8844f;
+  --soft: #f1dfcf;
+  --green: #445b3a;
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Segoe UI", sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(216, 132, 79, 0.22), transparent 34rem),
+    linear-gradient(135deg, #f8f2ea 0%, #efe2d5 100%);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+button, textarea, select, input { font: inherit; }
+
+.app-shell {
+  width: min(920px, 100%);
+  margin: 0 auto;
+  padding: 32px 18px 56px;
+}
+
+.card {
+  background: rgba(255, 250, 243, 0.92);
+  border: 1px solid rgba(111, 61, 46, 0.14);
+  border-radius: 32px;
+  box-shadow: 0 24px 80px rgba(67, 34, 25, 0.12);
+  padding: clamp(24px, 5vw, 52px);
+  backdrop-filter: blur(18px);
+}
+
+.hero {
+  min-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+h1 {
+  font-size: clamp(36px, 7vw, 72px);
+  letter-spacing: -0.055em;
+  line-height: 1.02;
+  margin: 0 0 22px;
+}
+
+h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: clamp(18px, 2.7vw, 24px);
+  line-height: 1.65;
+  max-width: 720px;
+  margin: 0 0 28px;
+}
+
+.lead.small { font-size: 17px; }
+
+.promise-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.promise-list span {
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: #fff7ed;
+  color: var(--brand);
+  font-weight: 700;
+}
+
+.primary, .secondary-button, .ghost {
+  border: 0;
+  cursor: pointer;
+  border-radius: 999px;
+  min-height: 50px;
+  padding: 0 22px;
+  font-weight: 800;
+  transition: transform 0.16s ease, box-shadow 0.16s ease, background 0.16s ease;
+}
+
+.primary {
+  background: var(--brand);
+  color: #fffdf9;
+  box-shadow: 0 14px 36px rgba(111, 61, 46, 0.28);
+  width: fit-content;
+}
+
+.primary:hover, .secondary-button:hover, .ghost:hover {
+  transform: translateY(-1px);
+}
+
+.primary.wide { width: 100%; margin-top: 12px; }
+
+.secondary-button {
+  background: #f7eadf;
+  color: var(--brand-dark);
+  border: 1px solid var(--line);
+}
+
+.ghost {
+  background: transparent;
+  color: var(--muted);
+  padding-inline: 0;
+}
+
+.back { margin-bottom: 12px; }
+
+.helper {
+  color: var(--muted);
+  margin-top: 20px;
+}
+
+.subtle-card { margin-top: 22px; }
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.history-list li {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.history-list span { color: var(--muted); }
+
+.training-form {
+  display: grid;
+  gap: 16px;
+}
+
+.field-card {
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  border-radius: 22px;
+  padding: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.field-card.optional { background: #fff8ef; }
+
+.field-index {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: var(--soft);
+  color: var(--brand);
+  font-weight: 900;
+}
+
+.field-label, legend {
+  font-weight: 850;
+  font-size: 18px;
+}
+
+.field-label em { color: var(--muted); font-size: 13px; font-style: normal; }
+
+textarea, select {
+  width: 100%;
+  border: 1px solid #dccabc;
+  border-radius: 16px;
+  background: #fffaf4;
+  padding: 14px;
+  color: var(--ink);
+  outline: none;
+  resize: vertical;
+}
+
+textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(216, 132, 79, 0.16);
+}
+
+.loading-card {
+  min-height: 70vh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.loader {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 5px solid var(--soft);
+  border-top-color: var(--brand);
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.result-card { display: grid; gap: 18px; }
+
+.result-section {
+  border: 1px solid var(--line);
+  background: #fffdf8;
+  border-radius: 24px;
+  padding: 20px;
+}
+
+.result-section.highlight {
+  background: linear-gradient(135deg, #fff4e5, #f7ddc6);
+  border-color: rgba(216, 132, 79, 0.34);
+}
+
+.result-section p, .result-section li, .question-box strong, .cta-panel p {
+  line-height: 1.75;
+  font-size: 17px;
+}
+
+.result-section ol { padding-left: 22px; margin-bottom: 0; }
+
+.question-box {
+  background: var(--brand-dark);
+  color: white;
+  border-radius: 24px;
+  padding: 22px;
+  display: grid;
+  gap: 8px;
+}
+
+.question-box.secondary {
+  background: var(--green);
+}
+
+.question-box span {
+  color: rgba(255, 255, 255, 0.72);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.question-box strong {
+  font-size: clamp(21px, 4vw, 30px);
+  letter-spacing: -0.03em;
+}
+
+.cta-panel {
+  border: 1px solid rgba(68, 91, 58, 0.22);
+  background: #f0f4e9;
+  border-radius: 24px;
+  padding: 22px;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.scale, .choices { border: 1px solid var(--line); }
+
+.scale-row {
+  display: flex;
+  gap: 8px;
+}
+
+.scale-row label span {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff8ee;
+  font-weight: 900;
+}
+
+.scale-row input, .choices input { accent-color: var(--brand); }
+
+.scale-row input { position: absolute; opacity: 0; }
+
+.scale-row input:checked + span {
+  background: var(--brand);
+  color: #fff;
+}
+
+.choices label { display: block; margin-top: 8px; color: var(--muted); font-weight: 700; }
+
+@media (max-width: 640px) {
+  .app-shell { padding: 14px 12px 36px; }
+  .card { border-radius: 24px; padding: 22px; }
+  .hero { min-height: 86vh; }
+  .button-row, .primary { width: 100%; }
+  .secondary-button { width: 100%; }
+}

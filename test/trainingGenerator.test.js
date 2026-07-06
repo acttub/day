@@ -1,69 +1,65 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { generateTraining, validateTrainingResult, copyForShare } from '../src/trainingGenerator.js';
+import {
+  TRAINING_LIBRARY,
+  copyForShare,
+  generateTraining,
+  getDailySeed,
+  validateTrainingResult
+} from '../src/trainingGenerator.js';
 
-const baseInput = {
-  sceneSituation: '오래 사귄 친구에게 사실은 떠나고 싶다고 말해야 하는 장면',
-  characterWants: '상대가 나를 붙잡지 않았으면 좋겠다',
-  outwardAttitude: '괜찮은 척, 차분한 척한다',
-  innerSubtext: '미안하고 무섭지만 들키고 싶지 않다',
-  currentBlock: '대사가 자꾸 설명처럼 느껴진다',
-  actorLevel: '입시 준비',
-  practiceTime: '10분'
-};
+test('daily recommendation is deterministic for the same date and changes across dates', () => {
+  const first = generateTraining({ date: '2026-07-06' });
+  const again = generateTraining({ date: '2026-07-06' });
+  const nextDay = generateTraining({ date: '2026-07-07' });
 
-test('generates the required training contract from scene context', () => {
-  const result = generateTraining(baseInput);
-
-  assert.equal(typeof result.thoughtToFill, 'string');
-  assert.ok(result.thoughtToFill.length > 15);
-  assert.equal(typeof result.reason, 'string');
-  assert.equal(typeof result.trainingTitle, 'string');
-  assert.equal(result.trainingSteps.length, 3);
-  assert.equal(typeof result.startingQuestion, 'string');
-  assert.equal(typeof result.closingQuestion, 'string');
-  assert.match(result.cta, /영상/);
-  assert.match(result.cta, /질문/);
+  assert.equal(first.id, again.id);
+  assert.notEqual(first.id, nextDay.id);
+  assert.equal(getDailySeed('2026-07-06'), getDailySeed('2026-07-06'));
 });
 
-test('grounds the recommendation in the user input without pretending to see video', () => {
-  const result = generateTraining(baseInput);
-  const text = Object.values(result).flat().join('\n');
+test('training library is broad enough and includes detailed 10 minute exercises', () => {
+  assert.ok(TRAINING_LIBRARY.length >= 20);
 
-  assert.match(text, /붙잡|방어|설명|상대/);
-  assert.doesNotMatch(text, /00:\d\d|타임스탬프|표정이|말투가|몸짓이|보입니다/);
+  for (const training of TRAINING_LIBRARY) {
+    assert.equal(typeof training.title, 'string');
+    assert.ok(training.title.length >= 3);
+    assert.ok(['장면', '마이즈너 영감', '뷰포인트 영감', '감각/관찰', '호흡/집중'].includes(training.category));
+    assert.ok(training.summary.length >= 20);
+    assert.equal(training.timeline.length, 4);
+    assert.ok(training.timeline.every((step) => /분/.test(step.time) && step.instruction.length >= 25));
+    assert.ok(training.coachingTips.length >= 3);
+    assert.ok(training.closingCheck.length >= 2);
+  }
+});
+
+test('generated result presents a random daily acting training, not scene diagnosis', () => {
+  const result = generateTraining({ date: '2026-07-06' });
+
+  assert.equal(typeof result.title, 'string');
+  assert.equal(typeof result.category, 'string');
+  assert.equal(result.timeline.length, 4);
+  assert.ok(result.coachingTips.length >= 3);
+  assert.ok(result.closingCheck.length >= 2);
+  assert.match(result.heroLine, /오늘 10분/);
+  assert.doesNotMatch(JSON.stringify(result), /오늘 채울 생각|왜 이 훈련인가|장면에서 가장/);
 });
 
 test('does not use evaluative or scoring language', () => {
-  const result = generateTraining(baseInput);
+  const result = generateTraining({ date: '2026-07-06' });
   const validation = validateTrainingResult(result);
 
   assert.deepEqual(validation.forbiddenMatches, []);
   assert.equal(validation.valid, true);
 });
 
-test('handles unknown intent by choosing a narrowing-question exercise instead of guessing', () => {
-  const result = generateTraining({
-    sceneSituation: '친구와 말다툼하는 장면',
-    characterWants: '잘 모르겠다',
-    outwardAttitude: '화난 것 같다',
-    innerSubtext: '잘 모르겠다',
-    currentBlock: '뭘 원하는지 모르겠다',
-    actorLevel: '입시 준비',
-    practiceTime: '10분'
-  });
-
-  assert.match(result.trainingTitle, /좁히|찾기|원하는/);
-  assert.match(result.startingQuestion, /어떤 반응|무엇을 바라는|원하/);
-  assert.doesNotMatch(result.reason, /사실은 .* 싶어/);
-});
-
-test('share copy exposes the question and brand without leaking private scene context', () => {
-  const result = generateTraining(baseInput);
+test('share copy is concise and does not expose private scene context', () => {
+  const result = generateTraining({ date: '2026-07-06' });
   const share = copyForShare(result);
 
-  assert.match(share, /오늘의 연기질문/);
-  assert.ok(share.includes(result.startingQuestion));
+  assert.match(share, /오늘의 연기 훈련/);
+  assert.ok(share.includes(result.title));
+  assert.match(share, /10분/);
   assert.match(share, /acttub/);
-  assert.doesNotMatch(share, /오래 사귄 친구|떠나고 싶다고/);
+  assert.doesNotMatch(share, /오래 사귄 친구|떠나고 싶다고|속마음/);
 });

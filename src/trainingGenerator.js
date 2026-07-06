@@ -11,202 +11,340 @@ const FORBIDDEN_PATTERNS = [
   /감정 전달력/g,
   /몰입도/g,
   /진정성/g,
-  /실력/g
+  /실력/g,
+  /평가/g
 ];
 
-const UNKNOWN_PATTERNS = [/모르겠/, /잘 모르/, /애매/, /없음/, /^\s*$/];
-
-function includesAny(text, patterns) {
-  return patterns.some((pattern) => pattern.test(text || ''));
+function step(time, instruction) {
+  return { time, instruction };
 }
 
-function normalizeInput(input) {
-  return {
-    sceneSituation: String(input.sceneSituation || '').trim(),
-    characterWants: String(input.characterWants || '').trim(),
-    outwardAttitude: String(input.outwardAttitude || '').trim(),
-    innerSubtext: String(input.innerSubtext || '').trim(),
-    currentBlock: String(input.currentBlock || '').trim(),
-    actorLevel: String(input.actorLevel || '').trim(),
-    practiceTime: String(input.practiceTime || '10분').trim() || '10분'
-  };
-}
-
-function selectPattern(input) {
-  const joined = [input.sceneSituation, input.characterWants, input.outwardAttitude, input.innerSubtext, input.currentBlock].join(' ');
-
-  const unknownCount = [input.characterWants, input.innerSubtext, input.currentBlock].filter((value) => includesAny(value, UNKNOWN_PATTERNS)).length;
-  if (unknownCount >= 2) return 'narrowing';
-
-  if (/설명|대사|말이|말처럼|설득/.test(joined)) return 'defense';
-  if (/화|소리|따지|분노|몰아붙/.test(joined)) return 'recognition';
-  if (/웃|밝|장난|괜찮은 척|숨기/.test(joined)) return 'mask';
-  if (/몸|호흡|발성|목소리|굳/.test(joined)) return 'bodyReason';
-  return 'objective';
-}
-
-const PATTERN_BUILDERS = {
-  defense(input) {
-    return {
-      thoughtToFill: '상대를 설득하려는 말보다, 상대가 나를 붙잡거나 흔들까 봐 먼저 방어하는 마음을 채워보면 좋아요.',
-      reason: `입력해준 장면에서는 인물이 ‘${input.characterWants || '상대의 특정 반응'}’라는 바람을 갖고 있고, 동시에 ‘${input.innerSubtext || '드러내고 싶지 않은 마음'}’도 안고 있어요. 특히 “${input.currentBlock}”라는 막힘은 말의 내용보다 말하기 직전의 방어가 아직 덜 구체화됐을 때 자주 생길 수 있어요. 오늘은 감정을 키우기보다, 상대의 반응을 피하려는 마음이 대사 앞에 먼저 서게 만드는 훈련이 맞아 보여요.`,
-      trainingTitle: '붙잡힘을 피하는 방어 훈련',
-      trainingSteps: [
-        '대사를 시작하기 전, 상대가 내가 가장 피하고 싶은 반응을 보이는 장면을 10초간 떠올려보세요.',
-        '그 반응을 피하기 위해 인물이 속으로 먼저 하는 말을 한 문장으로 적어보세요.',
-        '그 문장을 속으로 붙잡은 채 첫 대사만 다시 해보고, 말이 설명이 아니라 방어에서 시작되는지 확인해보세요.'
-      ],
-      startingQuestion: '상대가 지금 당신을 붙잡는다면, 이 인물은 정확히 무엇을 빼앗긴다고 느끼나요?',
-      closingQuestion: '다시 해봤을 때, 대사가 설명이 아니라 먼저 자신을 지키려는 말처럼 시작되는 순간이 있었나요?'
-    };
+export const TRAINING_LIBRARY = [
+  {
+    id: 'viewpoints-tempo-walk',
+    category: '뷰포인트 영감',
+    title: '공간 속도 바꾸기',
+    heroLine: '오늘 10분은 몸이 먼저 깨어나게 하는 날이에요.',
+    summary: '대본 없이도 할 수 있는 몸/공간 훈련입니다. 걷는 속도와 멈춤을 바꾸면서 몸이 어떤 리듬에서 살아나는지 확인합니다.',
+    timeline: [
+      step('0~2분', '방 안을 아주 느리게 걸으면서 시선이 자연스럽게 꽂히는 지점 세 곳을 찾으세요.'),
+      step('2~5분', '같은 공간을 빠르게 걷되, 방향을 갑자기 세 번 바꿔 몸이 먼저 반응하게 두세요.'),
+      step('5~8분', '느림과 빠름을 번갈아 쓰고, 멈춤 직후 바로 출발하는 순간을 세 번 만들어보세요.'),
+      step('8~10분', '오늘 몸이 가장 깨어난 속도 하나를 고르고, 그 속도로 마지막 30초를 다시 걸어보세요.')
+    ],
+    focusQuestion: '내 몸은 어떤 속도에서 가장 먼저 깨어났나요?',
+    coachingTips: ['예쁘게 걷지 말고 속도 차이를 크게 만드세요.', '멈춤을 실패로 보지 말고 다음 출발의 준비로 쓰세요.', '감정을 만들려 하지 말고 몸의 반응을 먼저 보세요.'],
+    closingCheck: ['처음보다 몸의 무게가 달라졌나요?', '가장 살아난 속도를 한 단어로 적어보세요.']
   },
-  recognition(input) {
-    return {
-      thoughtToFill: '화를 크게 내는 것보다, 이 인물이 상대에게 확인받고 싶은 한 문장을 먼저 채워보면 좋아요.',
-      reason: `입력해준 막힘은 “${input.currentBlock}”예요. 이 경우에는 에너지를 더 세게 쓰기보다, 인물이 상대에게 어떤 인정을 받고 싶은지 좁혀보는 편이 장면을 단순하게 만들지 않을 수 있어요. 지금은 ${input.characterWants || '상대의 반응'}을 바라지만, 그 아래에는 ${input.innerSubtext || '건드려진 마음'}이 있을 가능성이 있어요. 오늘은 그 마음을 직접 설명하지 않고, 상대에게서 듣고 싶은 한마디를 찾는 훈련으로 시작해보면 좋아요.`,
-      trainingTitle: '인정받고 싶은 한마디 찾기 훈련',
-      trainingSteps: [
-        '상대가 해주면 인물이 잠깐 멈출 것 같은 말을 세 문장 적어보세요.',
-        '그중 가장 듣고 싶은 한 문장만 남기고, 나머지는 지워보세요.',
-        '그 한 문장을 듣기 위해 첫 대사를 다시 해보고, 소리의 크기보다 말의 방향이 생기는지 확인해보세요.'
-      ],
-      startingQuestion: '상대가 어떤 한마디를 해주면, 이 인물은 더 몰아붙이지 않고 잠깐 멈출 수 있을까요?',
-      closingQuestion: '다시 해봤을 때, 화가 단순히 커지는 대신 상대에게 요구하는 방향이 생겼나요?'
-    };
+  {
+    id: 'meisner-inspired-observation-repeat',
+    category: '마이즈너 영감',
+    title: '반복 관찰 훈련',
+    heroLine: '오늘 10분은 내 말보다 상대를 먼저 듣는 날이에요.',
+    summary: '상대가 있으면 가장 좋고, 혼자라면 거울이나 영상 속 사람을 보고 변형해서 할 수 있는 반응 훈련입니다.',
+    timeline: [
+      step('0~2분', '상대 또는 관찰 대상을 보고 지금 실제로 보이는 것 하나만 짧게 말하세요.'),
+      step('2~5분', '같은 문장을 반복하되, 매번 방금 새로 들리거나 보인 차이를 먼저 느끼고 말하세요.'),
+      step('5~8분', '표정, 숨, 속도, 시선 중 하나가 바뀔 때마다 그 변화를 한 문장으로 받아 말하세요.'),
+      step('8~10분', '마지막 1분은 내가 준비한 말보다 상대의 변화에 먼저 반응하는 데 집중하세요.')
+    ],
+    focusQuestion: '나는 상대를 보고 있었나요, 아니면 내가 할 말을 기다리고 있었나요?',
+    coachingTips: ['웃기려고 하지 말고 실제로 보이는 것만 말하세요.', '말의 의미보다 듣고 난 뒤의 반응을 보세요.', '상대가 없으면 영상 속 사람의 변화에 맞춰 혼자 반복해도 됩니다.'],
+    closingCheck: ['처음에는 안 보였는데 나중에 보인 변화가 있었나요?', '내 반응이 늦어진 순간이 있었나요?']
   },
-  mask(input) {
-    return {
-      thoughtToFill: '밝게 보이려는 행동보다, 들키면 안 되는 마음의 크기를 먼저 채워보면 좋아요.',
-      reason: `입력에는 ${input.outwardAttitude || '겉으로 보이는 태도'}와 ${input.innerSubtext || '숨기고 싶은 마음'} 사이의 차이가 있어요. “${input.currentBlock}”라고 느껴진다면, 웃음이나 밝음 자체보다 그것으로 무엇을 숨기려 하는지가 더 필요할 수 있어요. 오늘은 표현을 바꾸기보다, 들켰을 때 벌어질 일을 구체화해서 겉태도가 왜 필요한지 확인해보면 좋아요.`,
-      trainingTitle: '들키면 안 되는 이유 구체화 훈련',
-      trainingSteps: [
-        '지금 숨기고 있는 마음이 상대에게 들켰을 때 생길 수 있는 일을 세 가지 적어보세요.',
-        '그중 인물이 가장 피하고 싶은 결과 하나를 고르세요.',
-        '그 결과를 피하려고 밝게 행동한다고 생각하고 첫 대사 또는 첫 행동을 다시 해보세요.'
-      ],
-      startingQuestion: '지금 들키면, 이 인물은 무엇을 가장 잃게 된다고 느끼나요?',
-      closingQuestion: '다시 해봤을 때, 밝음이 가벼운 상태가 아니라 숨기기 위한 행동처럼 느껴졌나요?'
-    };
+  {
+    id: 'scene-hidden-sentence',
+    category: '장면',
+    title: '첫 대사 전 숨은 문장 만들기',
+    heroLine: '오늘 10분은 대사보다 먼저 속으로 삼키는 말을 찾는 날이에요.',
+    summary: '장면이나 독백이 있을 때 하는 훈련입니다. 첫 대사 직전에 인물이 속으로 붙잡고 있는 문장을 만들어 대사의 방향을 세웁니다.',
+    timeline: [
+      step('0~2분', '첫 대사 바로 전에 인물이 속으로 하고 있을 말을 세 문장 써보세요.'),
+      step('2~4분', '세 문장 중 가장 말하기 싫지만 사실에 가까운 문장 하나를 고르세요.'),
+      step('4~8분', '그 문장을 속으로 말한 뒤 첫 대사를 세 번 반복하고, 매번 방향이 달라지는지 보세요.'),
+      step('8~10분', '처음과 가장 달라진 한 번을 고르고, 무엇이 달라졌는지 한 문장으로 적으세요.')
+    ],
+    focusQuestion: '이 인물은 첫 대사를 하기 전에 무엇을 삼키고 있나요?',
+    coachingTips: ['숨은 문장은 멋진 문장이 아니라 민망할 만큼 직접적인 문장이 좋습니다.', '첫 대사 전체가 아니라 첫 한 문장만 반복하세요.', '속말을 밖으로 설명하지 말고 대사 전에만 붙잡으세요.'],
+    closingCheck: ['첫 대사가 설명이 아니라 행동처럼 시작됐나요?', '다음에 다시 붙잡을 속말이 생겼나요?']
   },
-  bodyReason(input) {
-    return {
-      thoughtToFill: '몸이나 소리를 바로 바꾸기보다, 이 말을 끝까지 밀어야 하는 이유를 먼저 채워보면 좋아요.',
-      reason: `현재 막힘은 “${input.currentBlock}”예요. 기술적인 막힘처럼 느껴져도, 장면 안에서 말의 목적이 흐리면 몸과 소리가 같이 멈출 수 있어요. 입력을 보면 인물은 ${input.characterWants || '상대의 반응'}을 바라고 있어요. 오늘은 몸을 풀기보다, 이 말을 반드시 해야 하는 이유를 짧고 선명하게 만드는 훈련이 맞아 보여요.`,
-      trainingTitle: '말을 끝까지 미는 이유 훈련',
-      trainingSteps: [
-        '첫 대사 전에 “이 말을 못 하면 나는 ___를 잃는다”를 채워보세요.',
-        '빈칸에 들어갈 말을 세 개 써보고 가장 몸이 반응하는 하나를 고르세요.',
-        '그 한 문장을 속으로 말한 뒤, 첫 대사를 다시 해보세요.'
-      ],
-      startingQuestion: '이 말을 끝까지 하지 못하면, 이 인물은 무엇을 잃는다고 느끼나요?',
-      closingQuestion: '다시 해봤을 때, 몸이나 소리가 결과가 아니라 목적을 따라 움직이는 느낌이 있었나요?'
-    };
+  {
+    id: 'sensory-five-sounds',
+    category: '감각/관찰',
+    title: '소리 5개 듣고 반응하기',
+    heroLine: '오늘 10분은 머리를 줄이고 감각을 여는 날이에요.',
+    summary: '조용한 공간에서도 가능한 집중 훈련입니다. 주변 소리를 듣고 몸이나 시선이 실제로 어떻게 반응하는지 관찰합니다.',
+    timeline: [
+      step('0~2분', '눈을 감고 지금 들리는 소리 다섯 개를 마음속으로만 구분해보세요.'),
+      step('2~5분', '각 소리가 날 때마다 고개, 손, 시선 중 하나가 아주 작게 반응하도록 허용하세요.'),
+      step('5~8분', '가장 신경 쓰이는 소리 하나를 고르고, 그 소리가 가까워진다고 상상하며 서 있거나 앉아보세요.'),
+      step('8~10분', '눈을 뜨고 같은 공간을 다시 보며, 소리를 듣기 전과 달라진 집중점을 적어보세요.')
+    ],
+    focusQuestion: '내 몸은 어떤 소리에 가장 먼저 반응했나요?',
+    coachingTips: ['소리를 찾으려고 애쓰지 말고 이미 있는 소리를 받으세요.', '반응은 크게 만들 필요 없습니다.', '집중이 흐트러지면 다시 가장 가까운 소리 하나로 돌아오세요.'],
+    closingCheck: ['훈련 전보다 공간이 더 구체적으로 느껴졌나요?', '가장 오래 남은 소리 하나는 무엇인가요?']
   },
-  narrowing(input) {
-    return {
-      thoughtToFill: '오늘은 정답을 정하기보다, 인물이 상대에게 바라는 반응을 하나로 좁히는 것부터 시작해보면 좋아요.',
-      reason: '입력에 아직 모르는 부분이 많아서 특정 마음이나 의도를 단정하지 않는 편이 안전해요. 대신 지금은 장면 해석을 완성하려 하기보다, 상대가 어떤 반응을 해주길 바라는지 좁히는 훈련이 더 도움이 될 수 있어요. 목적이 조금만 선명해져도 대사와 행동이 어디로 가야 하는지 보기 쉬워져요.',
-      trainingTitle: '원하는 반응 좁히기 훈련',
-      trainingSteps: [
-        '상대가 해줄 수 있는 반응을 세 가지 적어보세요.',
-        '그중 이 인물이 가장 바라지 않는 반응 하나를 지워보세요.',
-        '남은 반응 중 하나를 얻기 위해 첫 대사를 다시 해보세요.'
-      ],
-      startingQuestion: '이 인물은 상대가 어떤 반응을 해주면 가장 안심할까요?',
-      closingQuestion: '다시 해봤을 때, 첫 대사가 감정 표현보다 상대의 반응을 기다리는 말처럼 느껴졌나요?'
-    };
+  {
+    id: 'breath-gaze-first-line',
+    category: '호흡/집중',
+    title: '숨-시선-첫 문장 연결',
+    heroLine: '오늘 10분은 첫 문장을 급하게 시작하지 않는 날이에요.',
+    summary: '오디션, 수업, 촬영 전 워밍업으로 좋은 훈련입니다. 숨과 시선을 먼저 정리한 뒤 첫 문장을 시작합니다.',
+    timeline: [
+      step('0~2분', '편하게 서서 숨을 세 번 내쉬고, 시선이 머물 지점 하나를 정하세요.'),
+      step('2~4분', '그 지점을 보며 첫 문장을 아주 낮은 소리로 세 번 말하세요.'),
+      step('4~7분', '숨을 내쉰 뒤 바로 말하지 말고, 반 박자 기다렸다가 첫 문장을 다시 말하세요.'),
+      step('7~10분', '가장 덜 급했던 한 번을 기억하고, 같은 방식으로 첫 문장과 다음 문장까지 이어보세요.')
+    ],
+    focusQuestion: '나는 첫 문장을 시작하기 전에 어디를 보고 있었나요?',
+    coachingTips: ['잘 말하려고 하지 말고 시작 전 준비를 느끼세요.', '시선 지점은 사람, 벽, 사물 어디든 괜찮습니다.', '숨을 많이 들이마시기보다 내쉬고 남은 상태를 써보세요.'],
+    closingCheck: ['첫 문장이 덜 급하게 시작됐나요?', '시선이 문장에 방향을 만들어줬나요?']
   },
-  objective(input) {
-    return {
-      thoughtToFill: '오늘은 감정을 먼저 정하기보다, 상대에게 실제로 일으키고 싶은 변화를 하나로 좁혀보면 좋아요.',
-      reason: `입력해준 장면에서는 ${input.sceneSituation || '상황'} 안에서 인물이 ${input.characterWants || '무언가'}를 바라고 있어요. 그런데 막힘이 “${input.currentBlock}”라면, 지금은 감정의 종류보다 상대가 어떻게 변하길 바라는지가 더 필요할 수 있어요. 오늘은 상대에게 일어나야 하는 변화 하나를 정하고, 그 변화를 향해 대사를 다시 보내보는 훈련으로 시작해보면 좋아요.`,
-      trainingTitle: '상대의 변화 한 가지 정하기 훈련',
-      trainingSteps: [
-        '상대가 장면 끝에 어떻게 달라져 있기를 바라는지 세 가지로 적어보세요.',
-        '그중 지금 첫 대사로 가장 먼저 흔들 수 있는 변화 하나를 고르세요.',
-        '그 변화를 일으키려는 말이라고 생각하고 첫 대사를 다시 해보세요.'
-      ],
-      startingQuestion: '이 장면에서 당신은 상대가 어떤 선택이나 반응을 하게 만들고 싶나요?',
-      closingQuestion: '다시 해봤을 때, 대사가 감정을 보여주는 말이 아니라 상대를 움직이려는 말처럼 느껴졌나요?'
-    };
+  {
+    id: 'viewpoints-shape-three',
+    category: '뷰포인트 영감',
+    title: '몸의 형태 세 번 바꾸기',
+    heroLine: '오늘 10분은 생각보다 형태를 먼저 바꾸는 날이에요.',
+    summary: '몸의 모양을 바꾸며 감정이나 역할보다 먼저 신체의 선택지를 늘리는 훈련입니다.',
+    timeline: [step('0~2분','현재 몸 상태 그대로 멈춰서 어깨, 손, 목의 모양을 관찰하세요.'),step('2~5분','큰 형태, 작은 형태, 비틀린 형태를 각각 30초씩 만들어보세요.'),step('5~8분','세 형태 중 하나를 고르고 그 모양으로 방 안을 천천히 이동하세요.'),step('8~10분','가장 낯설었던 형태에서 짧은 문장 하나를 말해보세요.')],
+    focusQuestion: '어떤 몸의 형태가 평소와 다른 생각을 만들었나요?',
+    coachingTips: ['아름다운 포즈가 아니라 낯선 선택이 목표입니다.', '통증이 생기면 바로 줄이세요.', '형태를 바꾼 뒤 말이 어떻게 달라지는지 보세요.'],
+    closingCheck: ['평소 안 쓰던 몸의 길이나 방향이 있었나요?', '그 형태에서 나온 문장은 평소와 달랐나요?']
+  },
+  {
+    id: 'scene-objective-one-verb',
+    category: '장면',
+    title: '상대를 움직이는 동사 하나',
+    heroLine: '오늘 10분은 감정 이름 대신 행동 동사를 고르는 날이에요.',
+    summary: '장면 속 상대를 어떻게 바꾸고 싶은지 하나의 동사로 좁히는 훈련입니다.',
+    timeline: [step('0~2분','상대를 설득한다, 밀어낸다, 붙잡는다, 떠본다처럼 동사 다섯 개를 적으세요.'),step('2~4분','오늘 장면에 가장 필요한 동사 하나만 고르세요.'),step('4~8분','그 동사를 속으로 붙잡고 같은 대사를 세 번 반복하세요.'),step('8~10분','동사를 바꿨을 때 가장 달라진 문장 하나를 표시하세요.')],
+    focusQuestion: '이 장면에서 나는 상대를 어떻게 움직이고 싶나요?',
+    coachingTips: ['감정 형용사보다 행동 동사가 좋습니다.', '동사는 하나만 고르세요.', '대사를 잘하려 하지 말고 상대에게 보내는 방향을 보세요.'],
+    closingCheck: ['대사의 목적지가 더 선명해졌나요?', '다음 반복에서 바꿔보고 싶은 동사가 있나요?']
+  },
+  {
+    id: 'sensory-object-talk',
+    category: '감각/관찰',
+    title: '사물 하나를 3분 보고 말하기',
+    heroLine: '오늘 10분은 상상보다 관찰을 먼저 쓰는 날이에요.',
+    summary: '방 안 사물 하나를 오래 보고, 보이는 것에서 말이 나오게 하는 관찰 훈련입니다.',
+    timeline: [step('0~2분','방 안의 사물 하나를 고르고 색, 질감, 무게를 조용히 관찰하세요.'),step('2~5분','그 사물을 처음 보는 사람처럼 1분 동안 설명해보세요.'),step('5~8분','그 사물이 누군가의 것이라면 어떤 사람일지 상상해서 말하세요.'),step('8~10분','마지막으로 그 사물에게 하고 싶은 한 문장을 말해보세요.')],
+    focusQuestion: '오래 보니까 처음에는 안 보이던 무엇이 보였나요?',
+    coachingTips: ['상상은 관찰 이후에 붙이세요.', '말이 막히면 다시 색이나 질감으로 돌아오세요.', '좋은 문장을 만들 필요 없습니다.'],
+    closingCheck: ['관찰이 말의 출발점이 됐나요?', '사물 하나가 관계처럼 느껴진 순간이 있었나요?']
+  },
+  {
+    id: 'breath-countdown-stillness',
+    category: '호흡/집중',
+    title: '30초 정지 후 시작하기',
+    heroLine: '오늘 10분은 바로 시작하지 않고 준비를 견디는 날이에요.',
+    summary: '급하게 말하거나 움직이는 습관을 줄이고, 정지 상태에서 충동이 생긴 뒤 시작하는 훈련입니다.',
+    timeline: [step('0~2분','편하게 서서 30초 동안 아무것도 하지 않고 시선만 유지하세요.'),step('2~5분','몸이 움직이고 싶어지는 순간을 기다렸다가 첫 행동 하나만 하세요.'),step('5~8분','같은 정지 뒤 첫 문장을 아주 짧게 말해보세요.'),step('8~10분','정지 없이 시작한 버전과 정지 후 시작한 버전을 비교해보세요.')],
+    focusQuestion: '가만히 있는 동안 가장 먼저 움직이고 싶어진 곳은 어디였나요?',
+    coachingTips: ['정지는 굳는 것이 아니라 듣는 시간입니다.', '30초가 길면 15초부터 시작해도 됩니다.', '첫 행동은 작아도 괜찮습니다.'],
+    closingCheck: ['시작이 덜 자동적으로 느껴졌나요?', '정지 후 생긴 충동이 있었나요?']
+  },
+  {
+    id: 'meisner-inspired-alone-repeat',
+    category: '마이즈너 영감',
+    title: '혼자 하는 관찰-반복 변형',
+    heroLine: '오늘 10분은 혼자서도 반응을 훈련하는 날이에요.',
+    summary: '상대가 없을 때 거울, 영상, 사진을 사용해 관찰과 반복의 감각을 연습합니다.',
+    timeline: [step('0~2분','거울 속 자신이나 영상 속 사람을 보고 실제로 보이는 것 하나를 말하세요.'),step('2~5분','같은 문장을 세 번 반복하되 매번 새로 보이는 차이를 하나 찾으세요.'),step('5~8분','차이를 찾을 때마다 문장 속도나 크기를 조금 바꿔보세요.'),step('8~10분','마지막에는 가장 진짜로 들렸던 반복 한 번을 다시 해보세요.')],
+    focusQuestion: '반복했을 때 문장이 자동이 아니라 새로 들린 순간이 있었나요?',
+    coachingTips: ['거울을 평가용으로 쓰지 마세요.', '보이는 사실 하나만 다룹니다.', '반복은 똑같이 말하기가 아니라 새로 듣기입니다.'],
+    closingCheck: ['세 번째 반복에서 달라진 점이 있었나요?', '내가 준비한 느낌을 내려놓은 순간이 있었나요?']
+  },
+  {
+    id: 'viewpoints-distance',
+    category: '뷰포인트 영감',
+    title: '거리 바꾸기 훈련',
+    heroLine: '오늘 10분은 공간의 거리가 관계를 바꾸는지 보는 날이에요.',
+    summary: '사람이나 사물과의 거리를 바꾸며 몸과 말의 관계감을 확인하는 훈련입니다.',
+    timeline: [step('0~2분','사물 하나를 상대라고 정하고 아주 멀리 서보세요.'),step('2~5분','한 걸음씩 가까워지며 같은 짧은 문장을 반복하세요.'),step('5~8분','가장 말하기 어려운 거리에서 멈춰 문장을 세 번 말하세요.'),step('8~10분','가장 편한 거리와 불편한 거리를 각각 기록하고, 장면에 쓰고 싶은 거리를 고르세요.')],
+    focusQuestion: '어떤 거리에서 말의 힘이나 부담이 가장 달라졌나요?',
+    coachingTips: ['거리 변화만 해도 관계가 달라질 수 있습니다.', '문장은 짧을수록 좋습니다.', '불편한 거리에서 오래 버티지 말고 관찰만 하세요.'],
+    closingCheck: ['거리가 바뀌자 말의 목적도 달라졌나요?', '장면에서 써보고 싶은 거리가 생겼나요?']
+  },
+  {
+    id: 'scene-mask-inner',
+    category: '장면',
+    title: '겉태도와 속마음 분리하기',
+    heroLine: '오늘 10분은 겉으로 하는 행동과 속의 말을 따로 세우는 날이에요.',
+    summary: '장면에서 겉태도와 속마음이 섞일 때 둘을 분리해 대사 아래의 긴장을 만드는 훈련입니다.',
+    timeline: [step('0~2분','겉으로 보이는 태도를 한 단어로 적고, 속마음을 다른 한 단어로 적으세요.'),step('2~4분','겉태도 단어만 붙잡고 첫 대사를 한 번 말하세요.'),step('4~7분','속마음 단어만 붙잡고 같은 대사를 다시 말하세요.'),step('7~10분','겉태도는 유지하되 속마음 단어를 숨긴 채 마지막으로 말하세요.')],
+    focusQuestion: '이 인물은 무엇을 보여주고, 무엇을 숨기고 있나요?',
+    coachingTips: ['겉태도와 속마음은 반대일수록 훈련이 선명합니다.', '속마음을 직접 표현하지 말고 숨겨보세요.', '대사는 같은 문장으로 유지하세요.'],
+    closingCheck: ['겉과 속이 동시에 느껴지는 순간이 있었나요?', '숨긴 쪽이 대사에 압력을 만들었나요?']
+  },
+  {
+    id: 'sensory-memory-hands',
+    category: '감각/관찰',
+    title: '손의 감각으로 기억 열기',
+    heroLine: '오늘 10분은 머리로 떠올리기보다 손의 감각에서 시작하는 날이에요.',
+    summary: '손에 남아 있는 온도, 질감, 무게를 통해 기억과 반응을 여는 감각 훈련입니다.',
+    timeline: [step('0~2분','손바닥을 비비고 온도와 압력을 천천히 느껴보세요.'),step('2~5분','최근 만졌던 물건 하나의 질감과 무게를 손으로 다시 떠올려보세요.'),step('5~8분','그 물건을 누구에게 건네거나 빼앗기는 상상을 하며 손을 움직이세요.'),step('8~10분','손의 감각이 남아 있는 상태에서 짧은 문장 하나를 말하세요.')],
+    focusQuestion: '손의 감각이 떠올린 기억이나 관계가 있었나요?',
+    coachingTips: ['감정을 만들려 하지 말고 감각을 먼저 좁히세요.', '손 움직임은 작아도 됩니다.', '구체적인 물건일수록 좋습니다.'],
+    closingCheck: ['문장이 손의 감각과 연결됐나요?', '기억보다 먼저 온 감각이 있었나요?']
+  },
+  {
+    id: 'breath-low-voice',
+    category: '호흡/집중',
+    title: '낮은 소리로 첫 문장 5번',
+    heroLine: '오늘 10분은 목소리를 크게 만들기보다 말의 바닥을 찾는 날이에요.',
+    summary: '첫 문장을 낮고 작게 반복하며 소리의 출발점과 말의 방향을 안정시키는 워밍업입니다.',
+    timeline: [step('0~2분','입을 다문 채 편하게 숨을 내쉬고 턱과 목의 힘을 확인하세요.'),step('2~5분','첫 문장을 아주 낮고 작은 소리로 다섯 번 반복하세요.'),step('5~8분','같은 문장을 조금씩 더 멀리 보내되, 크기보다 방향을 유지하세요.'),step('8~10분','가장 편했던 소리의 높이와 속도로 마지막 한 번을 말하세요.')],
+    focusQuestion: '내 목소리는 어디에서 가장 편하게 시작됐나요?',
+    coachingTips: ['작은 소리가 약한 소리는 아닙니다.', '목에 힘이 들어가면 다시 숨부터 시작하세요.', '문장을 멀리 보내되 밀어내지 마세요.'],
+    closingCheck: ['처음보다 소리의 출발점이 편해졌나요?', '말이 목이 아니라 방향에서 시작됐나요?']
+  },
+  {
+    id: 'scene-before-after',
+    category: '장면',
+    title: '장면 전후 1분 상상',
+    heroLine: '오늘 10분은 대사 안이 아니라 장면 앞뒤를 채우는 날이에요.',
+    summary: '장면 직전과 직후를 상상해 현재 장면의 압력을 더 구체화하는 훈련입니다.',
+    timeline: [step('0~2분','장면 시작 1분 전에 인물이 어디서 무엇을 했는지 적어보세요.'),step('2~4분','장면 끝 1분 뒤 인물이 어디로 가고 싶은지 적어보세요.'),step('4~8분','전후 1분을 붙잡고 첫 대사와 마지막 대사를 각각 한 번씩 말하세요.'),step('8~10분','전후를 알게 되자 현재 장면에서 급해진 것이 무엇인지 적으세요.')],
+    focusQuestion: '이 장면은 어디에서 와서 어디로 가고 있나요?',
+    coachingTips: ['상상은 길게 쓰지 말고 1분만 구체화하세요.', '장면 밖 정보가 현재 대사를 압박하게 두세요.', '정답보다 쓸 수 있는 가정이면 충분합니다.'],
+    closingCheck: ['장면의 시작이나 끝이 더 선명해졌나요?', '현재 대사의 이유가 달라졌나요?']
+  },
+  {
+    id: 'viewpoints-repetition-gesture',
+    category: '뷰포인트 영감',
+    title: '반복 제스처 만들기',
+    heroLine: '오늘 10분은 하나의 동작을 반복해서 낯설게 보는 날이에요.',
+    summary: '작은 제스처를 반복하며 의미가 생기거나 사라지는 순간을 관찰하는 몸 훈련입니다.',
+    timeline: [step('0~2분','오늘 자주 한 손동작이나 몸짓 하나를 고르세요.'),step('2~5분','그 동작을 같은 크기와 속도로 10번 반복하세요.'),step('5~8분','크게, 작게, 아주 느리게 바꿔서 각각 세 번 반복하세요.'),step('8~10분','가장 의미가 생긴 버전 하나에 짧은 문장을 붙여보세요.')],
+    focusQuestion: '반복하니까 동작의 의미가 생겼나요, 사라졌나요?',
+    coachingTips: ['동작을 설명하지 말고 반복하세요.', '지루해지는 순간을 지나야 새로 보일 수 있습니다.', '문장은 마지막에만 붙이세요.'],
+    closingCheck: ['반복 후 동작이 다르게 느껴졌나요?', '장면에 가져가고 싶은 제스처가 있었나요?']
+  },
+  {
+    id: 'meisner-inspired-impulse-delay',
+    category: '마이즈너 영감',
+    title: '반응 한 박자 늦추기',
+    heroLine: '오늘 10분은 빨리 반응하지 않고 진짜로 받은 뒤 움직이는 날이에요.',
+    summary: '상대의 말이나 상상 자극에 바로 반응하지 않고 한 박자 늦춰 실제 반응을 확인합니다.',
+    timeline: [step('0~2분','상대의 짧은 말이나 녹음된 문장 하나를 준비하세요.'),step('2~5분','문장을 들은 뒤 바로 말하지 말고 한 번 숨을 내쉰 다음 반응하세요.'),step('5~8분','같은 문장을 세 번 듣고, 매번 다른 몸의 반응이 있는지 보세요.'),step('8~10분','가장 늦게 나왔지만 진짜에 가까웠던 반응 하나를 적으세요.')],
+    focusQuestion: '내가 바로 대답하지 않았을 때 무엇이 새로 올라왔나요?',
+    coachingTips: ['늦추는 것은 멍해지는 것이 아니라 받는 시간입니다.', '반응은 말이 아니라 숨이나 시선이어도 됩니다.', '상대가 없으면 녹음 문장으로 해도 됩니다.'],
+    closingCheck: ['빠른 반응과 늦춘 반응이 달랐나요?', '기다렸을 때 더 정확해진 반응이 있었나요?']
+  },
+  {
+    id: 'sensory-walk-as-someone',
+    category: '감각/관찰',
+    title: '오늘 본 사람의 걸음 따라 하기',
+    heroLine: '오늘 10분은 관찰한 몸을 내 몸으로 번역하는 날이에요.',
+    summary: '하루 중 본 사람의 걸음을 떠올리고 따라 하며 몸의 리듬과 상태를 관찰합니다.',
+    timeline: [step('0~2분','오늘 본 사람 중 걸음이 기억나는 사람 하나를 떠올리세요.'),step('2~5분','그 사람의 속도, 무게, 시선 방향을 따라 걸어보세요.'),step('5~8분','같은 걸음으로 방 안을 돌며 그 사람의 하루를 상상해보세요.'),step('8~10분','그 걸음에서 나온 짧은 문장 하나를 말해보세요.')],
+    focusQuestion: '그 사람의 걸음은 무엇을 숨기거나 드러내고 있었나요?',
+    coachingTips: ['흉내나 조롱이 아니라 리듬 관찰입니다.', '걸음의 속도와 무게를 먼저 보세요.', '상상은 걸음이 만든 만큼만 붙이세요.'],
+    closingCheck: ['걸음이 바뀌자 생각의 속도도 달라졌나요?', '내 몸에 남은 리듬이 있었나요?']
+  },
+  {
+    id: 'breath-attention-dot',
+    category: '호흡/집중',
+    title: '집중점 하나 정하고 말하기',
+    heroLine: '오늘 10분은 산만한 에너지를 한 점으로 모으는 날이에요.',
+    summary: '공간 안의 한 점을 정하고 그곳에 말을 보내며 집중을 회복하는 훈련입니다.',
+    timeline: [step('0~2분','벽, 문손잡이, 의자 등 시선을 둘 점 하나를 정하세요.'),step('2~5분','그 점을 향해 짧은 문장을 아주 작게 세 번 말하세요.'),step('5~8분','시선을 떼지 않고 문장의 속도만 느리게, 보통, 빠르게 바꿔보세요.'),step('8~10분','가장 집중이 잘 모인 속도로 마지막 한 번을 말하세요.')],
+    focusQuestion: '내 말은 어디를 향해 가고 있었나요?',
+    coachingTips: ['집중점은 의미 있는 물건일 필요 없습니다.', '시선이 흔들리면 다시 같은 점으로 돌아오세요.', '집중은 세게 보는 것이 아니라 계속 돌아오는 것입니다.'],
+    closingCheck: ['산만함이 줄어든 순간이 있었나요?', '말의 목적지가 더 분명해졌나요?']
+  },
+  {
+    id: 'scene-three-obstacles',
+    category: '장면',
+    title: '상대가 막는 것 세 가지',
+    heroLine: '오늘 10분은 상대가 왜 쉬운 길을 막는지 보는 날이에요.',
+    summary: '장면 속 갈등을 상대의 장애물로 구체화해 대사의 필요를 만드는 훈련입니다.',
+    timeline: [step('0~2분','상대가 인물이 원하는 것을 막는 방식 세 가지를 적으세요.'),step('2~4분','그중 지금 첫 대사에서 가장 크게 느껴지는 장애물 하나를 고르세요.'),step('4~8분','그 장애물을 넘기 위해 첫 대사를 세 번 다른 방식으로 말하세요.'),step('8~10분','가장 행동이 분명했던 방식을 한 문장으로 기록하세요.')],
+    focusQuestion: '상대는 지금 나를 어떻게 막고 있나요?',
+    coachingTips: ['상대를 나쁜 사람으로 만들 필요는 없습니다.', '장애물은 구체적일수록 좋습니다.', '대사는 장애물을 넘기 위한 행동으로 써보세요.'],
+    closingCheck: ['상대가 더 구체적으로 느껴졌나요?', '첫 대사의 필요가 더 생겼나요?']
+  },
+  {
+    id: 'viewpoints-levels',
+    category: '뷰포인트 영감',
+    title: '높이 바꾸기 훈련',
+    heroLine: '오늘 10분은 몸의 높이를 바꿔 장면의 에너지를 바꾸는 날이에요.',
+    summary: '서기, 앉기, 낮아지기 등 몸의 높이를 바꾸며 말과 상태가 어떻게 달라지는지 봅니다.',
+    timeline: [step('0~2분','선 상태, 앉은 상태, 낮게 웅크린 상태를 각각 20초씩 느껴보세요.'),step('2~5분','같은 짧은 문장을 세 높이에서 한 번씩 말하세요.'),step('5~8분','가장 낯선 높이에서 이동하거나 시선을 바꿔보세요.'),step('8~10분','오늘 가장 쓸 수 있을 것 같은 높이를 골라 마지막 문장을 말하세요.')],
+    focusQuestion: '몸의 높이가 바뀌자 말의 태도도 바뀌었나요?',
+    coachingTips: ['무리해서 낮아지지 마세요.', '높이는 권력, 방어, 노출감을 바꿀 수 있습니다.', '문장은 짧게 유지하세요.'],
+    closingCheck: ['어떤 높이에서 가장 다른 에너지가 생겼나요?', '장면에 가져갈 수 있는 높이가 있었나요?']
+  },
+  {
+    id: 'sensory-temperature',
+    category: '감각/관찰',
+    title: '온도 상상 훈련',
+    heroLine: '오늘 10분은 감정 이름보다 온도로 상태를 바꿔보는 날이에요.',
+    summary: '뜨거움, 차가움, 미지근함 같은 온도 감각을 통해 몸의 상태와 말을 바꾸는 훈련입니다.',
+    timeline: [step('0~2분','손끝이 차가워지는 상상을 하며 손과 팔의 변화를 느껴보세요.'),step('2~5분','가슴이나 등 쪽에 따뜻함이 퍼진다고 상상하며 서 있어보세요.'),step('5~8분','차가운 상태와 따뜻한 상태에서 같은 문장을 각각 말하세요.'),step('8~10분','오늘 더 쓸 수 있는 온도 하나를 골라 마지막으로 문장을 말하세요.')],
+    focusQuestion: '어떤 온도에서 말의 상태가 가장 달라졌나요?',
+    coachingTips: ['감정을 정하지 말고 온도만 바꿔보세요.', '상상이 잘 안 되면 실제 물컵이나 손 비비기를 써도 됩니다.', '몸의 작은 변화만 관찰하세요.'],
+    closingCheck: ['온도가 바뀌자 호흡이나 시선도 달라졌나요?', '장면에 쓸 수 있는 온도 감각이 있었나요?']
+  },
+  {
+    id: 'breath-reset-routine',
+    category: '호흡/집중',
+    title: '수업 전 10분 리셋',
+    heroLine: '오늘 10분은 연습을 시작하기 전 몸과 시선을 정리하는 날이에요.',
+    summary: '수업, 오디션, 촬영 전 급하게 흩어진 상태를 정리하는 짧은 루틴입니다.',
+    timeline: [step('0~2분','발바닥을 바닥에 두고 숨을 세 번 길게 내쉬세요.'),step('2~4분','어깨, 턱, 손에 들어간 힘을 하나씩 확인하고 10%만 줄이세요.'),step('4~7분','오늘 첫 문장이나 첫 행동을 아주 작게 세 번만 해보세요.'),step('7~10분','지금 가져갈 집중점 하나를 정하고 마지막 30초 동안 조용히 유지하세요.')],
+    focusQuestion: '오늘 연습에 가져갈 집중점 하나는 무엇인가요?',
+    coachingTips: ['긴장을 없애려 하지 말고 쓸 수 있을 만큼만 낮추세요.', '첫 문장이나 첫 행동은 작게 시작하세요.', '루틴은 매번 똑같이 해도 좋습니다.'],
+    closingCheck: ['시작 전보다 호흡이 정리됐나요?', '오늘 붙잡을 집중점이 하나 생겼나요?']
   }
-};
+];
 
-export function generateTraining(rawInput) {
-  const input = normalizeInput(rawInput);
-  const pattern = selectPattern(input);
-  const result = PATTERN_BUILDERS[pattern](input);
+export function getDailySeed(date = new Date()) {
+  const iso = typeof date === 'string' ? date.slice(0, 10) : date.toISOString().slice(0, 10);
+  return [...iso].reduce((sum, char) => sum + char.charCodeAt(0), 0);
+}
+
+export function generateTraining({ date = new Date() } = {}) {
+  const seed = getDailySeed(date);
+  const training = TRAINING_LIBRARY[seed % TRAINING_LIBRARY.length];
   return {
-    ...result,
-    cta: '이 훈련을 실제 영상으로 해보면, acttub이 어느 순간에서 생각이 비는지 더 정확히 질문해줄 수 있어요.',
-    pattern,
-    createdAt: new Date().toISOString()
+    ...training,
+    date: typeof date === 'string' ? date.slice(0, 10) : date.toISOString().slice(0, 10),
+    cta: '훈련을 해봤다면 짧게 기록해보세요. 장면으로 해본 날에는 영상으로 남기고 다음 질문을 받아볼 수 있어요.'
   };
 }
 
 export function validateTrainingResult(result) {
   const text = [
-    result.thoughtToFill,
-    result.reason,
-    result.trainingTitle,
-    ...(result.trainingSteps || []),
-    result.startingQuestion,
-    result.closingQuestion,
+    result.title,
+    result.heroLine,
+    result.summary,
+    ...(result.timeline || []).flatMap((item) => [item.time, item.instruction]),
+    result.focusQuestion,
+    ...(result.coachingTips || []),
+    ...(result.closingCheck || []),
     result.cta
   ].join('\n');
   const forbiddenMatches = FORBIDDEN_PATTERNS.flatMap((pattern) => text.match(pattern) || []);
   return {
     valid:
-      Boolean(result.thoughtToFill) &&
-      Boolean(result.reason) &&
-      Boolean(result.trainingTitle) &&
-      Array.isArray(result.trainingSteps) &&
-      result.trainingSteps.length === 3 &&
-      Boolean(result.startingQuestion) &&
-      Boolean(result.closingQuestion) &&
+      Boolean(result.title) &&
+      Boolean(result.category) &&
+      Boolean(result.summary) &&
+      Array.isArray(result.timeline) &&
+      result.timeline.length === 4 &&
+      Array.isArray(result.coachingTips) &&
+      result.coachingTips.length >= 3 &&
+      Array.isArray(result.closingCheck) &&
+      result.closingCheck.length >= 2 &&
       forbiddenMatches.length === 0,
     forbiddenMatches
   };
 }
 
 export function copyForShare(result) {
-  return `오늘의 연기질문\n\n“${result.startingQuestion}”\n\nacttub\n배우가 스스로 장면을 다시 보게 하는 질문`;
+  return `오늘의 연기 훈련\n\n${result.title}\n\n${result.heroLine}\n\n10분 진행법: ${result.timeline[0].instruction}\n\nacttub`;
 }
 
-export const fieldDefinitions = [
-  {
-    name: 'sceneSituation',
-    label: '장면 상황',
-    question: '지금 장면에서 무슨 일이 벌어지고 있나요?',
-    placeholder: '예: 오래 사귄 친구에게 사실은 떠나고 싶다고 말해야 하는 장면',
-    required: true
-  },
-  {
-    name: 'characterWants',
-    label: '인물이 원하는 것',
-    question: '이 인물은 상대에게 무엇을 얻고 싶나요?',
-    placeholder: '예: 상대가 나를 붙잡지 않았으면 좋겠다',
-    required: true
-  },
-  {
-    name: 'outwardAttitude',
-    label: '겉태도',
-    question: '겉으로는 어떤 태도를 보이나요?',
-    placeholder: '예: 괜찮은 척, 차분한 척한다',
-    required: true
-  },
-  {
-    name: 'innerSubtext',
-    label: '속마음',
-    question: '사실 속으로는 무엇을 느끼거나 숨기고 있나요?',
-    placeholder: '예: 미안하고 무섭지만 들키고 싶지 않다',
-    required: true
-  },
-  {
-    name: 'currentBlock',
-    label: '오늘 막히는 부분',
-    question: '오늘 연습하면서 어디가 제일 막히나요?',
-    placeholder: '예: 대사가 자꾸 설명처럼 느껴진다',
-    required: true
-  }
-];
+export const fieldDefinitions = [];

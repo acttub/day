@@ -246,6 +246,36 @@ textarea:focus, select:focus {
 
 .result-section ol { padding-left: 22px; margin-bottom: 0; }
 
+.training-title {
+  font-size: clamp(34px, 6vw, 64px);
+  margin-bottom: 14px;
+}
+
+.timeline-list {
+  display: grid;
+  gap: 14px;
+  padding-left: 0 !important;
+  list-style: none;
+}
+
+.timeline-list li {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: start;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.timeline-list li strong {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.timeline-list li span {
+  line-height: 1.75;
+}
+
 .question-box {
   background: var(--brand-dark);
   color: white;

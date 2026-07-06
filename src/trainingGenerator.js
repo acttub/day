@@ -248,6 +248,32 @@ export function validateTrainingResult(result) {
   };
 }
 
+export function getPracticeStepState(result, requestedIndex = 0) {
+  const totalSteps = result.timeline.length;
+  const currentIndex = Math.min(Math.max(Number(requestedIndex) || 0, 0), totalSteps - 1);
+  const stepItem = result.timeline[currentIndex];
+  const isFirst = currentIndex === 0;
+  const isLast = currentIndex === totalSteps - 1;
+  const hints = [
+    '준비가 완벽하지 않아도 괜찮아요. 지금 몸에서 시작하세요.',
+    result.guide?.watchFor?.[0] || '몸이 먼저 반응하는 작은 변화를 보세요.',
+    result.guide?.watchFor?.[1] || '잘하려고 하기보다 달라지는 지점을 관찰하세요.',
+    result.focusQuestion || '끝나고 몸에 남은 한 가지를 붙잡아보세요.'
+  ];
+
+  return {
+    currentIndex,
+    totalSteps,
+    progressLabel: `${currentIndex + 1}/${totalSteps}`,
+    title: `${stepItem.time} 훈련`,
+    step: stepItem,
+    hint: hints[currentIndex] || hints.at(-1),
+    isFirst,
+    isLast,
+    nextActionLabel: isLast ? '기록 남기기' : '다음 단계로'
+  };
+}
+
 export function copyForShare(result) {
   return `오늘의 배우훈련\n\n${result.title}\n\n${result.heroLine}\n\n10분 진행법: ${result.timeline[0].instruction}\n\nhttps://acttub.github.io/day/`;
 }

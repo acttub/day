@@ -1,10 +1,11 @@
-import { CONDITION_OPTIONS, copyForShare, generateTraining, validateTrainingResult } from './trainingGenerator.js';
+import { CONDITION_OPTIONS, copyForShare, generateTraining, getPracticeStepState, validateTrainingResult } from './trainingGenerator.js';
 
 const app = document.querySelector('#app');
 const state = {
   step: 'landing',
   selectedConditionId: loadSelectedCondition(),
   result: generateTraining({ conditionId: loadSelectedCondition() }),
+  practiceStepIndex: 0,
   history: loadHistory(),
   survey: {}
 };
@@ -64,6 +65,7 @@ function render() {
   if (state.step === 'landing') renderLanding();
   if (state.step === 'loading') renderLoading();
   if (state.step === 'result') renderResult();
+  if (state.step === 'practice') renderPractice();
   if (state.step === 'survey') renderSurvey();
   bindCommonActions();
 }
@@ -205,13 +207,44 @@ function renderResult() {
       <div class="cta-panel">
         <h2>다음 행동</h2>
         <p>${escapeHtml(r.cta)}</p>
-        <button class="primary" data-action="done-practice">훈련 해봤다</button>
+        <button class="primary" data-action="practice-start">10분 시작하기</button>
       </div>
       <div class="button-row sticky-actions">
         <button class="secondary-button" data-action="copy-result">전체 가이드 복사</button>
         <button class="secondary-button" data-action="copy-share">공유 문구 복사</button>
         <button class="secondary-button" data-action="survey">30초 기록</button>
       </div>
+    </section>
+  `;
+}
+
+function renderPractice() {
+  const r = state.result;
+  const guide = getPracticeStepState(r, state.practiceStepIndex);
+  app.innerHTML = `
+    <section class="card practice-card">
+      <button class="ghost back" data-action="result">← 전체 진행법 보기</button>
+      <div class="practice-topline">
+        <span>${escapeHtml(r.title)}</span>
+        <strong>${escapeHtml(guide.progressLabel)} · ${escapeHtml(guide.step.time)}</strong>
+      </div>
+      <div class="practice-progress" aria-label="훈련 진행률">
+        ${r.timeline.map((_, index) => `<span class="${index <= guide.currentIndex ? 'active' : ''}"></span>`).join('')}
+      </div>
+      <h1 class="practice-title">${escapeHtml(guide.step.instruction)}</h1>
+      <div class="practice-hint">
+        <span>지금 볼 것</span>
+        <p>${escapeHtml(guide.hint)}</p>
+      </div>
+      <div class="practice-question">
+        <span>오늘 붙잡을 질문</span>
+        <strong>${escapeHtml(r.focusQuestion)}</strong>
+      </div>
+      <div class="button-row practice-actions">
+        <button class="secondary-button" data-action="practice-prev" ${guide.isFirst ? 'disabled' : ''}>이전 단계</button>
+        <button class="primary" data-action="${guide.isLast ? 'practice-finish' : 'practice-next'}">${escapeHtml(guide.nextActionLabel)}</button>
+      </div>
+      <p class="helper">타이머를 켜지 않아도 괜찮아요. 각 구간을 대략 따라가고, 마지막에 몸에 남은 것 하나만 기록하세요.</p>
     </section>
   `;
 }
@@ -283,6 +316,7 @@ function bindCommonActions() {
         setStep('loading');
         window.setTimeout(() => {
           state.result = generateTraining({ conditionId: state.selectedConditionId });
+          state.practiceStepIndex = 0;
           saveHistory(state.result);
           track('daily_training_result_success', { trainingId: state.result.id, category: state.result.category, conditionId: state.result.condition.id });
           setStep('result');
@@ -298,6 +332,24 @@ function bindCommonActions() {
       if (action === 'copy-share') {
         await copy(copyForShare(state.result));
         track('daily_training_share', { shareType: 'daily_training', trainingId: state.result.id });
+      }
+      if (action === 'practice-start') {
+        state.practiceStepIndex = 0;
+        track('daily_training_practice_start', { trainingId: state.result.id });
+        setStep('practice');
+      }
+      if (action === 'practice-next') {
+        state.practiceStepIndex += 1;
+        track('daily_training_practice_step', { trainingId: state.result.id, stepIndex: state.practiceStepIndex });
+        setStep('practice');
+      }
+      if (action === 'practice-prev') {
+        state.practiceStepIndex -= 1;
+        setStep('practice');
+      }
+      if (action === 'practice-finish') {
+        track('daily_training_practice_finish', { trainingId: state.result.id });
+        setStep('survey');
       }
       if (action === 'done-practice') {
         track('daily_training_done_click', { trainingId: state.result.id });

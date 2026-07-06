@@ -68,15 +68,15 @@ function renderLanding() {
   app.innerHTML = `
     <section class="hero card">
       <div class="eyebrow">acttub daily practice</div>
-      <h1>오늘의 연기 훈련!</h1>
-      <p class="lead">오늘 10분 동안 뭐 할지 모르겠다면, 대본이 있어도 없어도 바로 해볼 수 있는 훈련 하나를 추천해드릴게요.</p>
+      <h1>오늘의 배우훈련!</h1>
+      <p class="lead">오늘 10분 동안 뭐 할지 모르겠다면, 바로 해볼 수 있는 배우훈련 하나를 추천해드릴게요.</p>
       <div class="promise-list">
         <span>매일 랜덤</span>
         <span>10분 진행법</span>
-        <span>오늘 하나만</span>
+        <span>배우훈련만</span>
       </div>
       <button class="primary" data-action="start">오늘 훈련 받기</button>
-      <p class="helper">뷰포인트 영감, 마이즈너 영감, 장면, 감각/관찰, 호흡/집중 훈련 중 하나가 매일 달라져요.</p>
+      <p class="helper">뷰포인트 영감, 마이즈너 영감, 즉흥/상상, 감각/관찰, 호흡/집중 훈련 중 하나가 매일 달라져요.</p>
     </section>
     ${state.history.length ? renderHistoryPreview() : ''}
   `;
@@ -121,7 +121,7 @@ function renderResult() {
       <button class="ghost back" data-action="landing">← 처음으로</button>
       <div class="eyebrow">${escapeHtml(r.date)} · ${escapeHtml(r.category)}</div>
       <div class="result-section highlight">
-        <h2>오늘의 연기 훈련</h2>
+        <h2>오늘의 배우훈련</h2>
         <h1 class="training-title">${escapeHtml(r.title)}</h1>
         <p>${escapeHtml(r.heroLine)}</p>
       </div>
@@ -171,7 +171,7 @@ function renderSurvey() {
       <p class="lead small">이 기록은 내일 어떤 훈련을 이어갈지 판단하는 재료가 됩니다.</p>
       <form id="survey-form" class="training-form">
         ${renderChoice('didPractice', '실제로 10분을 해봤나요?', ['했다', '일부만 했다', '아직 안 했다'])}
-        ${renderChoice('bodyChanged', '끝나고 달라진 게 있었나요?', ['몸이 달라졌다', '집중이 달라졌다', '장면이 달라졌다', '잘 모르겠다'])}
+        ${renderChoice('bodyChanged', '끝나고 달라진 게 있었나요?', ['몸이 달라졌다', '집중이 달라졌다', '감각이 달라졌다', '잘 모르겠다'])}
         ${renderChoice('wantAgain', '내일도 랜덤 훈련을 받고 싶나요?', ['예', '아니오', '상황에 따라'])}
         <label class="field-card">
           <span class="field-label">오늘 남은 한 문장</span>
@@ -205,7 +205,7 @@ function renderChoice(name, label, choices) {
 
 function resultAsText() {
   const r = state.result;
-  return `오늘의 연기 훈련\n${r.title}\n\n${r.heroLine}\n\n오늘 이걸 해보는 이유\n${r.summary}\n\n10분 진행법\n${r.timeline.map((item) => `${item.time}: ${item.instruction}`).join('\n')}\n\n오늘 붙잡을 질문\n${r.focusQuestion}\n\n할 때 기억할 것\n${r.coachingTips.map((tip) => `- ${tip}`).join('\n')}\n\n끝나고 체크\n${r.closingCheck.map((item) => `- ${item}`).join('\n')}`;
+  return `오늘의 배우훈련\n${r.title}\n\n${r.heroLine}\n\n오늘 이걸 해보는 이유\n${r.summary}\n\n10분 진행법\n${r.timeline.map((item) => `${item.time}: ${item.instruction}`).join('\n')}\n\n오늘 붙잡을 질문\n${r.focusQuestion}\n\n할 때 기억할 것\n${r.coachingTips.map((tip) => `- ${tip}`).join('\n')}\n\n끝나고 체크\n${r.closingCheck.map((item) => `- ${item}`).join('\n')}`;
 }
 
 async function copy(text) {

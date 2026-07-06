@@ -80,6 +80,7 @@ function renderLanding() {
         <span>10분 실행 가이드</span>
         <span>끝나고 30초 기록</span>
       </div>
+      <button class="primary hero-button top-cta" data-action="start">오늘 훈련 바로 받기</button>
       <section class="condition-panel" aria-label="오늘 상태 선택">
         <div>
           <h2>오늘 상태를 하나만 골라주세요</h2>

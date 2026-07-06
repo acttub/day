@@ -139,6 +139,7 @@ h2 {
 }
 
 .hero-button { margin-top: 22px; }
+.top-cta { margin-top: 0; margin-bottom: 22px; }
 
 .condition-panel {
   border: 1px solid var(--line);
